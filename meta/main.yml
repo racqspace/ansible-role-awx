@@ -1,0 +1,21 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: awx
+  author: ckaserer
+  namespace: racqspace
+  description: Install awx on kubernetes.
+  license: "MIT"
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+  galaxy_tags:
+    - ansible
+    - awx
+    - k8s
+    - kubernetes
+    - system
+...

@@ -1,0 +1,12 @@
+---
+awx_operator_version: 0.13.0
+awx_namespace: awx
+# awx_hostname: awx.k8s.ckaserer.dev
+# awx_web_resource_requirements:
+#   requests:
+#     cpu: 1000m
+#     memory: 1Gi
+#   limits:
+#     cpu: 2000m
+#     memory: 2Gi
+...

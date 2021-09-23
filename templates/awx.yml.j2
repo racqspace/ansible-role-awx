@@ -1,0 +1,23 @@
+------
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+  namespace: {{ awx_namespace }}
+spec:
+  ingress_type: Ingress
+  hostname: "{{ awx_hostname }}"
+  {% if awx_webresource_requirements is defined %}
+  web_resource_requirements:
+    {% if awx_webresource_requirements.requests is defined %}
+    requests:
+      cpu: "{{ awx_webresource_requirements.requests.cpu }}"
+      memory: "{{ awx_webresource_requirements.requests.memory }}"
+    {% endif %}
+    {% if awx_webresource_requirements.requests is defined %}
+    limits:
+      cpu: "{{ awx_webresource_requirements.limits.cpu }}"
+      memory: "{{ awx_webresource_requirements.limits.memory }}"
+    {% endif %}
+  {% endif %}
+...
