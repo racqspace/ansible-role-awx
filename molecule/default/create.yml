@@ -1,0 +1,21 @@
+---
+- name: Create
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Create test kind cluster
+      ansible.builtin.command:
+        cmd: kind create cluster --name awx-test --kubeconfig {{ kubeconfig }}  # yamllint disable-line rule:line-length
+      changed_when: false
+
+    - name: apt update
+      ansible.builtin.command:
+        cmd: docker exec awx-test-control-plane apt update
+      changed_when: false
+
+    - name: install python3
+      ansible.builtin.command:
+        cmd: docker exec awx-test-control-plane apt install -y python3
+      changed_when: false
+...

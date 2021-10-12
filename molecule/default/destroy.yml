@@ -1,0 +1,13 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - community.kubernetes
+  tasks:
+    - name: Destroy test kind cluster
+      ansible.builtin.command:
+        cmd: kind delete cluster --name awx-test --kubeconfig {{ kubeconfig }}  # yamllint disable-line rule:line-length
+      changed_when: false
+...
