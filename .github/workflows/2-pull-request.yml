@@ -69,6 +69,7 @@ jobs:
 
       - name: Lint Code Base with yamllint
         run: yamllint .
+
   molecule:
     name: Molecule
     runs-on: ubuntu-latest
