@@ -69,6 +69,26 @@ jobs:
 
       - name: Lint Code Base with yamllint
         run: yamllint .
+  molecule:
+    name: Molecule
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install Molecule Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Molecule Tests
+        run: molecule test --all
+        env:
+          PY_COLORS: 1
+          ANSIBLE_FORCE_COLOR: 1
 
   notify:
     name: Slack Notifications
@@ -79,6 +99,7 @@ jobs:
       - pre-commit
       - super-linter
       - yaml-linter
+      - molecule
     steps:
       - name: Notify Slack channel on failure
         uses: rtCamp/action-slack-notify@v2
