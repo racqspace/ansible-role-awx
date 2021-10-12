@@ -6,6 +6,9 @@
     state: present
     update_cache: true
     cache_valid_time: "{{ awx_cache_valid_time }}"
+  tags:
+    - awx
+    - awx.dependencies
 
 - name: Install ansible dependencies
   ansible.builtin.pip:
@@ -13,18 +16,29 @@
       - kubernetes
       - openshift
       - pyyaml
+  tags:
+    - awx
+    - awx.dependencies
 
 - name: Create temporary file for awx operator manifest
   ansible.builtin.tempfile:
     state: file
     suffix: awx
   register: awx_operator_tempfile
+  tags:
+    - awx
+    - awx.operator
+    - molecule-idempotence-notest
 
 - name: Download awx operator manifest
   ansible.builtin.get_url:
     url: "https://raw.githubusercontent.com/ansible/awx-operator/{{ awx_operator_version }}/deploy/awx-operator.yaml"   # yamllint disable-line rule:line-length
     dest: "{{ awx_operator_tempfile.path }}"
     mode: '0664'
+  tags:
+    - awx
+    - awx.operator
+    - molecule-idempotence-notest
 
 - name: create awx namespace
   kubernetes.core.k8s:
@@ -32,15 +46,26 @@
     api_version: v1
     kind: Namespace
     state: present
+  tags:
+    - awx
+    - awx.instance
+    - awx.operator
 
 - name: Install awx operator
   kubernetes.core.k8s:
     state: present
     src: "{{ awx_operator_tempfile.path }}"
     namespace: "{{ awx_namespace }}"
+  tags:
+    - awx
+    - awx.operator
+    - molecule-idempotence-notest
 
 - name: Create awx instance
   kubernetes.core.k8s:
     state: present
     template: awx.yml.j2
+  tags:
+    - awx
+    - awx.instance
 ...

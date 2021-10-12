@@ -1,9 +1,17 @@
 ---
 # Cache update time for apt module.
 awx_cache_valid_time: 3600
+
+# Operator version used to deploy awx.
 awx_operator_version: 0.13.0
+
+# Target namespace for awx operator and instance.
 awx_namespace: awx
+
+# Hostname to expose awx via ingress.
 # awx_hostname: awx.k8s.ckaserer.dev
+
+# Resource Requirements.
 # awx_web_resource_requirements:
 #   requests:
 #     cpu: 1000m
