@@ -1,4 +1,19 @@
 ---
+- name: Install dependencies
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+    state: present
+    update_cache: true
+    cache_valid_time: "{{ awx_cache_valid_time }}"
+
+- name: Install ansible dependencies
+  ansible.builtin.pip:
+    name:
+      - kubernetes
+      - openshift
+      - pyyaml
+
 - name: Create temporary file for awx operator manifest
   ansible.builtin.tempfile:
     state: file

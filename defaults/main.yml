@@ -1,4 +1,6 @@
 ---
+# Cache update time for apt module.
+awx_cache_valid_time: 3600
 awx_operator_version: 0.13.0
 awx_namespace: awx
 # awx_hostname: awx.k8s.ckaserer.dev
