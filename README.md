@@ -6,9 +6,6 @@
 ![GitHub Release Date](https://img.shields.io/github/release-date/racqspace/ansible-role-awx?style=flat-square)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=flat-square)
 
-![Ansible Role](https://img.shields.io/ansible/role/56296?style=flat-square)
-![Ansible Quality Score](https://img.shields.io/ansible/quality/56296?style=flat-square)
-
 ## License
 
 MIT
