@@ -6,17 +6,25 @@ awx_cache_valid_time: 3600
 awx_operator_version: 0.13.0
 
 # Target namespace for awx operator and instance.
-awx_namespace: awx
+awx_namespace: default
 
-# Hostname to expose awx via ingress.
-# awx_hostname: awx.k8s.ckaserer.dev
-
-# Resource Requirements.
-# awx_web_resource_requirements:
-#   requests:
-#     cpu: 1000m
-#     memory: 1Gi
-#   limits:
-#     cpu: 2000m
-#     memory: 2Gi
+# Create and manage awx CRD directly in the role.
+# awx_crd:
+#   apiVersion: awx.ansible.com/v1beta1
+#   kind: AWX
+#   metadata:
+#     name: awx
+#   spec:
+#     ingress_type: Ingress
+#     hostname: awx.k8s.ckaserer.dev
+#     ingress_tls_secret: awx-cert
+#     ingress_annotations: |
+#       cert-manager.io/cluster-issuer: nameOfClusterIssuer
+#     web_resource_requirements:
+#      requests:
+#       cpu: 1000m
+#       memory: 1Gi
+#     limits:
+#       cpu: 2000m
+#       memory: 2Gi
 ...

@@ -61,11 +61,13 @@
     - awx.operator
     - molecule-idempotence-notest
 
-- name: Create awx instance
+- name: Deploy CRDs
   kubernetes.core.k8s:
     state: present
-    template: awx.yml.j2
+    definition: "{{ awx_crd }}"
+    namespace: "{{ awx_namespace }}"
+  when: awx_crd is defined
   tags:
     - awx
-    - awx.instance
+    - awx.crd
 ...

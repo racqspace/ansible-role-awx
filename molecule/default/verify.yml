@@ -25,7 +25,7 @@
 
     - name: Check awx namespace
       kubernetes.core.k8s:
-        name: "awx"
+        name: "default"
         api_version: v1
         kind: Namespace
         state: present
