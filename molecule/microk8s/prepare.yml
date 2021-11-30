@@ -1,0 +1,76 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  vars:
+    timezone: Europe/Berlin
+    locales: ['en_US.UTF-8']
+    microk8s_plugins:
+      - ingress: true
+      - storage: true
+      - dns: true
+      - helm: true
+      - helm3: true
+      - dashboard: true
+    microk8s_users: ['vagrant', 'root']
+    microk8s_dns_servers: ['8.8.8.8', '8.8.4.4']
+    locale: |
+      LANG=en_US.UTF-8
+      LANGUAGE=en_US.UTF-8
+      LC_CTYPE="en_US.UTF-8"
+      LC_NUMERIC="de_DE.UTF-8"
+      LC_TIME="de_DE.UTF-8"
+      LC_COLLATE="en_US.UTF-8"
+      LC_MONETARY="de_DE.UTF-8"
+      LC_MESSAGES="en_US.UTF-8"
+      LC_PAPER="de_DE.UTF-8"
+      LC_NAME="en_US.UTF-8"
+      LC_ADDRESS="de_DE.UTF-8"
+      LC_TELEPHONE="de_DE.UTF-8"
+      LC_MEASUREMENT="de_DE.UTF-8"
+      LC_IDENTIFICATION="en_US.UTF-8"
+      LC_ALL=en_US.UTF-8
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
+    - name: Install dependencies
+      ansible.builtin.package:
+        name:
+          - python3-pip
+          - tzdata
+          - locales
+
+    - name: Install python dependencies
+      ansible.builtin.pip:
+        name:
+          - openshift
+          - kubernetes
+
+    - name: ensure timezone is correct
+      timezone:
+        name: "{{ item }}"
+      with_items:
+        - "{{ timezone }}"
+
+    - name: Ensure locales exist
+      locale_gen:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "{{ locales }}"
+
+    - name: Place locale config
+      ansible.builtin.copy:
+        content: "{{ locale }}"
+        dest: /etc/default/locale
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Install microk8s
+      ansible.builtin.include_role:
+        name: "racqspace.microk8s"
