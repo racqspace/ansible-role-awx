@@ -20,21 +20,26 @@
     - awx
     - awx.dependencies
 
-- name: Create temporary file for awx operator manifest
-  ansible.builtin.tempfile:
-    state: file
-    suffix: awx
-  register: awx_operator_tempfile
+- name: Create dir for awx operator repo
+  ansible.builtin.file:
+    path: "{{ awx_operator_src_dir }}"
+    state: directory
+    owner: "{{ awx_kubectl_user }}"
+    group: "{{ awx_kubectl_user }}"
+    mode: '0755'
+  become: true
   tags:
     - awx
     - awx.operator
-    - molecule-idempotence-notest
 
-- name: Download awx operator manifest
-  ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/ansible/awx-operator/{{ awx_operator_version }}/deploy/awx-operator.yaml"   # yamllint disable-line rule:line-length
-    dest: "{{ awx_operator_tempfile.path }}"
-    mode: '0664'
+- name: Clone awx operator repo
+  ansible.builtin.git:
+    repo: "{{ awx_operator_git_repo }}"
+    dest: "{{ awx_operator_src_dir }}"
+    version: "{{ awx_operator_version }}"
+    force: true
+  become: true
+  become_user: "{{ awx_kubectl_user }}"
   tags:
     - awx
     - awx.operator
@@ -52,10 +57,16 @@
     - awx.operator
 
 - name: Install awx operator
-  kubernetes.core.k8s:
-    state: present
-    src: "{{ awx_operator_tempfile.path }}"
-    namespace: "{{ awx_namespace }}"
+  ansible.builtin.command:
+    cmd: make deploy
+  args:
+    chdir: "{{ awx_operator_src_dir }}"
+  environment:
+    NAMESPACE: "{{ awx_namespace }}"
+  become: true
+  become_user: "{{ awx_kubectl_user }}"
+  register: operator_install
+  changed_when: "'created' in operator_install.stdout"
   tags:
     - awx
     - awx.operator
