@@ -1,0 +1,98 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    awx_namespace: awx
+    awx_kubectl_user: root
+  become: true
+  become_user: root
+  tasks:
+    - name: Wait until pods started
+      pause:
+        seconds: 60
+
+    - name: Wait for all control-plane pods become created
+      shell: "kubectl get pods --namespace={{ awx_namespace }}"
+      register: awx_pods_created
+      until: item in awx_pods_created.stdout
+      retries: 10
+      delay: 20
+      with_items:
+        - awx-operator-controller-manager
+        - awx-postgres
+        - 4/4
+
+    - name: Wait for control-plane pods become ready
+      shell: >-
+        kubectl wait --namespace=awx
+        --for=condition=Ready pods
+        --timeout=600s
+        --selector app.kubernetes.io/managed-by=awx-operator
+      register: control_plane_pods_ready
+
+    - name: Get awx operator
+      community.kubernetes.k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: "{{ awx_namespace }}"
+        label_selectors:
+          - "control-plane=controller-manager"
+      register: awx_operator_querry
+
+    - name: Set awx operator var
+      ansible.builtin.set_fact:
+        awx_operator: "{{ awx_operator_querry.resources | first }}"
+
+    - name: Check awx operator pod
+      ansible.builtin.assert:
+        that:
+          - "'awx-operator-controller-manager' in awx_operator.spec.serviceAccount"
+          - "'Running' in awx_operator.status.phase"
+
+    - name: Get awx postgres
+      community.kubernetes.k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: "{{ awx_namespace }}"
+        label_selectors:
+          - "app.kubernetes.io/instance=postgres-awx"
+      register: awx_postgres_querry
+
+    - name: Set awx postgres var
+      ansible.builtin.set_fact:
+        awx_postgres: "{{ awx_postgres_querry.resources | first }}"
+
+    - name: Check awx postgres pod
+      ansible.builtin.assert:
+        that:
+          - "'awx-postgres-0' in awx_postgres.spec.hostname"
+          - "'Running' in awx_operator.status.phase"
+
+    - name: Get awx pod
+      community.kubernetes.k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: "{{ awx_namespace }}"
+        label_selectors:
+          - "app.kubernetes.io/name=awx"
+      register: awx_pods_querry
+
+    - name: Set awx var
+      ansible.builtin.set_fact:
+        awx_pods: "{{ awx_pods_querry.resources | first }}"
+
+    - name: Set awx containers
+      ansible.builtin.set_fact:
+        awx_containers: "{{ awx_pods.spec.containers | map(attribute='name') | list }}"
+
+    - name: Check awx pod
+      ansible.builtin.assert:
+        that:
+          - "'awx-web' in awx_containers"
+          - "'awx-task' in awx_containers"
+          - "'awx-ee' in awx_containers"
+          - "'redis' in awx_containers"
+          - "'Running' in awx_pods.status.phase"
