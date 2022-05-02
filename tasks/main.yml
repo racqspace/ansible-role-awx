@@ -20,7 +20,7 @@
     - awx
     - awx.dependencies
 
-- name: Create dir for awx operator repo
+- name: Create dir for awx operator config files
   ansible.builtin.file:
     path: "{{ awx_operator_src_dir }}"
     state: directory
@@ -32,37 +32,47 @@
     - awx
     - awx.operator
 
-- name: Clone awx operator repo
-  ansible.builtin.git:
-    repo: "{{ awx_operator_git_repo }}"
-    dest: "{{ awx_operator_src_dir }}"
-    version: "{{ awx_operator_version }}"
-    force: true
+- name: Install kustomize
+  ansible.builtin.shell: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+  args:
+    chdir: "{{ awx_operator_src_dir }}"
   become: true
-  become_user: "{{ awx_kubectl_user }}"
+  become_user: 'root'
+  register: kustomize_install
+  changed_when: "'installed' in kustomize_install.stdout"
+  failed_when: false
+  tags:
+    - awx
+    - awx.dependencies
+
+- name: Create kustomize config
+  ansible.builtin.template:
+    src: 'kustomization.yaml.j2'
+    dest: "{{ awx_operator_src_dir }}/kustomization.yaml"
+    owner: "{{ awx_kubectl_user }}"
+    group: "{{ awx_kubectl_user }}"
+    mode: '0744'
+  become: true
   tags:
     - awx
     - awx.operator
-    - molecule-idempotence-notest
 
-- name: create awx namespace
-  kubernetes.core.k8s:
-    name: "{{ awx_namespace }}"
-    api_version: v1
-    kind: Namespace
-    state: present
+- name: Create awx custom resource def
+  ansible.builtin.template:
+    src: 'awx-crd.yaml.j2'
+    dest: "{{ awx_operator_src_dir }}/awx-crd.yaml"
+    owner: "{{ awx_kubectl_user }}"
+    group: "{{ awx_kubectl_user }}"
+    mode: '0744'
+  become: true
   tags:
     - awx
-    - awx.instance
     - awx.operator
 
 - name: Install awx operator
-  ansible.builtin.command:
-    cmd: make deploy
+  ansible.builtin.shell: /opt/awx_operator/kustomize build . | kubectl apply -f -
   args:
     chdir: "{{ awx_operator_src_dir }}"
-  environment:
-    NAMESPACE: "{{ awx_namespace }}"
   become: true
   become_user: "{{ awx_kubectl_user }}"
   register: operator_install
@@ -72,13 +82,27 @@
     - awx.operator
     - molecule-idempotence-notest
 
-- name: Deploy CRDs
-  kubernetes.core.k8s:
-    state: present
-    definition: "{{ awx_crd }}"
-    namespace: "{{ awx_namespace }}"
-  when: awx_crd is defined
+- name: Add awx config file to kustomize crd conf file
+  ansible.builtin.lineinfile:
+    dest: "{{ awx_operator_src_dir }}/kustomization.yaml"
+    insertafter: "  # Awx CRD"
+    line: '  - awx-crd.yaml'
+  become: true
   tags:
     - awx
-    - awx.crd
+    - awx.operator
+    - molecule-idempotence-notest
+
+- name: Install awx
+  ansible.builtin.shell: /opt/awx_operator/kustomize build . | kubectl apply -f -
+  args:
+    chdir: "{{ awx_operator_src_dir }}"
+  become: true
+  become_user: "{{ awx_kubectl_user }}"
+  register: operator_install
+  changed_when: "'created' in operator_install.stdout"
+  tags:
+    - awx
+    - awx.operator
+    - molecule-idempotence-notest
 ...

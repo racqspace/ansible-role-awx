@@ -5,11 +5,8 @@ awx_cache_valid_time: 3600
 # Operator src dir.
 awx_operator_src_dir: '/opt/awx_operator'
 
-# Operator git repository
-awx_operator_git_repo: 'https://github.com/ansible/awx-operator.git'
-
 # Operator version used to deploy awx.
-awx_operator_version: 0.15.0
+awx_operator_version: 0.20.1
 
 # Target namespace for awx operator and instance.
 awx_namespace: default
