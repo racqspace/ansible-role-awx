@@ -1,0 +1,41 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    awx_namespace: awx
+    awx_kubectl_user: root
+    awx_crd:
+      apiVersion: awx.ansible.com/v1beta1
+      kind: AWX
+      metadata:
+        name: awx
+      spec:
+        service_type: nodeport
+        nodeport_port: 30080
+        ingress_type: ingress
+        hostname: awx.test.com
+        web_resource_requirements:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        task_resource_requirements:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        ee_resource_requirements:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+  tasks:
+    - name: "Include ansible-role-awx"
+      include_role:
+        name: "ansible-role-awx"
