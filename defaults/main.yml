@@ -6,7 +6,7 @@ awx_cache_valid_time: 3600
 awx_operator_src_dir: '/opt/awx_operator'
 
 # Operator version used to deploy awx.
-awx_operator_version: 1.0.0
+awx_operator_version: 2.5.0
 
 # Target namespace for awx operator and instance.
 awx_namespace: default
